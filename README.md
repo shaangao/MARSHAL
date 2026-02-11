@@ -10,6 +10,8 @@
 
 # MARSHAL: Incentivizing Multi-Agent Reasoning <br> via Self-Play with Strategic LLMs
 
+### 🎉 Accepted by ICLR 2026
+
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/release/python-390/)
 [![arXiv](https://img.shields.io/badge/arXiv-2510.15414-b31b1b.svg)](https://arxiv.org/abs/2510.15414)
