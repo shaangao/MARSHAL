@@ -12,8 +12,8 @@ hydra:
 
 exp_name: "agentic_hanabi_selfplay"
 seed: 42
-# logging_dir: /net/projects2/ycleong/sg/strategy-rl/MARSHAL/logs/${exp_name}
-# output_dir: /net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/${exp_name}
+logging_dir: /net/projects2/ycleong/sg/strategy-rl/MARSHAL/logs/${exp_name}
+output_dir: /net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/${exp_name}
 
 # render_save_dir: ./runs/render
 system_envs:
@@ -23,7 +23,7 @@ track_with: wandb
 tracker_kwargs:
  api_key: ${oc.env:WANDB_API_KEY}
  project: MARSHAL
- name: ${exp_name}_${pretrain}_${now:%Y%m%d-%H%M%S}
+ name: ${exp_name}_sokoban
  notes: "agentic_pipeline"
  tags:
    - agentic
@@ -32,16 +32,15 @@ tracker_kwargs:
 
 # track_with: tensorboard
 # tracker_kwargs:
-#   log_dir: /net/projects2/ycleong/sg/strategy-rl/MARSHAL/logs/tensorboard/${exp_name}
+#   log_dir: /mnt/public/algm/tanzheyue/rl/rl_examples/exps/${exp_name}/tensorboard_logs
 
-num_gpus_per_node: 4
+num_gpus_per_node: 1
 
 max_steps: 200
-save_steps: 10
+save_steps: 20
 logging_steps: 1
 eval_steps: 5
-# resume_from_checkpoint: false
-resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260414-222452/resume-checkpoint-14"
+resume_from_checkpoint: false
 
 rollout_batch_size: 128
 val_batch_size: 1500
@@ -62,8 +61,7 @@ whiten_advantages: true
 entropy_loss_coef: 0
 
 # pretrain: /mnt/public/yuanhuining/models/Qwen3-4B/
-pretrain: Qwen/Qwen3-4B
-# pretrain: Qwen/Qwen3-8B
+pretrain: Qwen/Qwen3-0.6B
 
 actor_train:
   model_args:
@@ -86,14 +84,14 @@ actor_train:
     strategy_name: megatron_train
     strategy_config:
       sequence_parallel: true
-      tensor_model_parallel_size: 4
+      tensor_model_parallel_size: 1
       pipeline_model_parallel_size: 1
       expert_model_parallel_size: 1
       use_distributed_optimizer: true
       recompute_granularity: full
       accumulate_allreduce_grads_in_fp32: true
       check_for_nan_in_loss_and_grad: false
-  device_mapping: list(range(0, ${num_gpus_per_node}))
+  device_mapping: list(range(0,1))
   infer_batch_size: 2
 
 actor_infer:
@@ -116,7 +114,7 @@ actor_infer:
       gpu_memory_utilization: 0.8
       block_size: 16
       load_format: auto
-  device_mapping: list(range(0, ${num_gpus_per_node}))
+  device_mapping: list(range(0,1))
 
 reference:
   model_args:
@@ -129,7 +127,7 @@ reference:
   strategy_args:
     strategy_name: hf_infer
     strategy_config: ~
-  device_mapping: list(range(0, ${num_gpus_per_node}))
+  device_mapping: list(range(0,1))
   infer_batch_size: 2
 
 enable_response_mask: True
@@ -294,7 +292,7 @@ train_env_manager:
   n_groups: [64] # If not set, all env names divide nums equally. Under the same group, the env config and env seed (prompt) are equal in each generation
 
 val_env_manager:
-  max_env_num_per_worker: 96 # how many envs are packed into each Ray worker. Increasing it reduces the number of val env Ray actors
+  max_env_num_per_worker: 32
   env_groups: 480
   group_size: 1
   tags: [
@@ -314,7 +312,4 @@ val_env_manager:
     SimpleHanabi,
     FullHanabi
   ]
-
-  # how many trajectories per val_env?
-  n_groups: [32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32]
-  # n_groups: [16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16]
+  n_groups: [32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32] #

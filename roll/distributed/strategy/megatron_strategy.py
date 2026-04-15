@@ -582,7 +582,7 @@ class MegatronTrainStrategy(MegatronInferStrategy, TrainStrategy):
         rng_file = os.path.join(load_dir, RNG_STATE_DIR, f"rng_state_{dist.get_rank()}.pth")
         if os.path.exists(rng_file):
             logger.info(f"Loading rng states from {rng_file}")
-            checkpoint_rng_state = torch.load(rng_file)
+            checkpoint_rng_state = torch.load(rng_file, weights_only=False)
             random.setstate(checkpoint_rng_state["random_rng_state"])
             np.random.set_state(checkpoint_rng_state["np_rng_state"])
             torch.set_rng_state(checkpoint_rng_state["torch_rng_state"])
