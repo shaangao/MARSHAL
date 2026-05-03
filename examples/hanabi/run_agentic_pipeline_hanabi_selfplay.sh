@@ -1,7 +1,28 @@
 #!/bin/bash
 set +x
 ulimit -u $(ulimit -Hu)
-ray stop
+
+# ── Aggressive Ray cleanup ──
+ray stop --force 2>/dev/null
+sleep 2
+pkill -u "$(whoami)" -f "ray::" 2>/dev/null
+pkill -u "$(whoami)" -f "raylet" 2>/dev/null
+pkill -u "$(whoami)" -f "gcs_server" 2>/dev/null
+pkill -u "$(whoami)" -f "runtime_env_agent" 2>/dev/null
+sleep 3
+
+# Remove stale Ray session files that confuse new head nodes
+rm -rf /tmp/ray/session_latest 2>/dev/null
+
+# Verify everything is dead before proceeding
+REMAINING_RAY=$(pgrep -u "$(whoami)" -f "ray[: ]" -c 2>/dev/null) || REMAINING_RAY=0
+if [ "$REMAINING_RAY" -gt 0 ]; then
+    echo "WARNING: $REMAINING_RAY Ray processes still alive after cleanup, force killing..."
+    pkill -9 -u "$(whoami)" -f "ray" 2>/dev/null
+    sleep 2
+fi
+FINAL_COUNT=$(pgrep -u "$(whoami)" -f "ray[: ]" -c 2>/dev/null) || FINAL_COUNT=0
+echo "=== Ray cleanup complete, remaining ray processes: $FINAL_COUNT ==="
 
 # ===== debug ==== #
 echo "=== ulimit ==="

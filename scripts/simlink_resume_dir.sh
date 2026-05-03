@@ -1,5 +1,20 @@
-PREV_RUN="/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260414-222452"
-STEP=14
+# PREV_RUN="/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260414-222452"
+# PREV_RUN="/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260415-190222"
+# PREV_RUN="/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260416-082536"
+# PREV_RUN="/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260417-055818"
+# PREV_RUN="/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260419-013303"
+# PREV_RUN="/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260422-104408"
+# PREV_RUN="/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260425-053524"
+# PREV_RUN="/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260426-053807"
+# PREV_RUN="/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260426-221501"
+# PREV_RUN="/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260428-233527"
+# PREV_RUN="/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260429-063637"
+# PREV_RUN="/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260429-063637"
+# PREV_RUN="/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260430-203829"
+# PREV_RUN="/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260430-203829"
+# PREV_RUN="/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260430-203829"
+PREV_RUN="/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260501-211724"
+STEP=189
 RESUME_DIR="${PREV_RUN}/resume-checkpoint-${STEP}"
 
 shopt -s dotglob

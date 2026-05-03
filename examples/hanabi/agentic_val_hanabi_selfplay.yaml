@@ -37,11 +37,28 @@ tracker_kwargs:
 num_gpus_per_node: 4
 
 max_steps: 200
-save_steps: 10
+save_steps: 5
+# save_steps: 10
 logging_steps: 1
 eval_steps: 5
 # resume_from_checkpoint: false
-resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260414-222452/resume-checkpoint-14"
+# run this before resuming training: /net/projects2/ycleong/sg/strategy-rl/MARSHAL/scripts/simlink_resume_dir.sh
+# resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260414-222452/resume-checkpoint-14"
+# resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260415-190222/resume-checkpoint-29"
+# resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260416-082536/resume-checkpoint-39"
+# resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260417-055818/resume-checkpoint-59"
+# resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260419-013303/resume-checkpoint-69"
+# resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260422-104408/resume-checkpoint-84"
+# resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260425-053524/resume-checkpoint-99"
+# resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260426-053807/resume-checkpoint-114"
+# resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260426-221501/resume-checkpoint-134"
+# resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260428-233527/resume-checkpoint-144"
+# resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260429-063637/resume-checkpoint-159"
+# resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260429-063637/resume-checkpoint-159"
+# resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260430-203829/resume-checkpoint-174"
+# resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260430-203829/resume-checkpoint-174"
+# resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260430-203829/resume-checkpoint-174"
+resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260501-211724/resume-checkpoint-189"
 
 rollout_batch_size: 128
 val_batch_size: 1500
@@ -64,6 +81,7 @@ entropy_loss_coef: 0
 # pretrain: /mnt/public/yuanhuining/models/Qwen3-4B/
 pretrain: Qwen/Qwen3-4B
 # pretrain: Qwen/Qwen3-8B
+# pretrain: meta-llama/Llama-3.2-3B-Instruct
 
 actor_train:
   model_args:

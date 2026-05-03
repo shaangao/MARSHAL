@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH --job-name=marshal_hanabi_4b_32
-#SBATCH --output=logs/train_%j.out
-#SBATCH --error=logs/train_%j.err
+#SBATCH --job-name=marshal_hanabi_4b
+#SBATCH --output=/net/projects2/ycleong/sg/strategy-rl/MARSHAL/logs/train_%j.out
+#SBATCH --error=/net/projects2/ycleong/sg/strategy-rl/MARSHAL/logs/train_%j.err
 #SBATCH --time=12:00:00
 #SBATCH --partition=general
 #SBATCH --nodes=1
-# SBATCH --constraint="a100|h100"
+#SBATCH --constraint="a100|h100|h200"
 #SBATCH --gpus-per-node=4
 # SBATCH --gres=gpu:8
 #SBATCH --ntasks=1
@@ -16,13 +16,8 @@
 # SBATCH --mail-type=ALL  # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=shangao@uchicago.edu  # mail notification for the job
 #SBATCH --open-mode=append # So that outcomes are appended, not rewritten
-#SBATCH --signal=SIGUSR1@90
+#SBATCH --signal=B:SIGUSR1@90
 echo $SLURM_RESTART_COUNT
-
-
-# Ensure log directory exists
-# run this script from the project root (/net/projects2/ycleong/sg/strategy-rl)
-mkdir -p logs
 
 
 # Set project root
@@ -31,11 +26,40 @@ CONTAINER_PATH="/net/projects2/ycleong/sg/containers/marshal_env"
 
 cd "$PROJECT_ROOT"
 
+# Ensure log directory exists
+mkdir -p MARSHAL/logs
+
 
 echo "Starting training job on $(hostname)"
 echo "Job ID: $SLURM_JOB_ID"
 
-# Run the training script inside the container
+
+TIMED_OUT=false
+# finds the directory containing the currently running script 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Clean up ray session and related processes
+cleanup() {
+    echo "$(date): Cleanup triggered (signal or exit)"
+    apptainer exec --nv --writable \
+        --bind "/net:/net" \
+        --bind "$PROJECT_ROOT:/strategy-rl" \
+        "$CONTAINER_PATH" \
+        bash -c "ray stop --force 2>/dev/null; sleep 2; pkill -u \$(whoami) -f 'ray::' 2>/dev/null; pkill -u \$(whoami) -f raylet 2>/dev/null; pkill -u \$(whoami) -f gcs_server 2>/dev/null"
+    rm -rf /tmp/ray/session_latest 2>/dev/null
+    echo "$(date): Cleanup complete"
+}
+
+handle_timeout() {
+    echo "$(date): SIGUSR1 received — job approaching time limit"
+    TIMED_OUT=true
+}
+
+# trap registration
+trap handle_timeout SIGUSR1
+trap cleanup EXIT
+
+# Run training in background so that `wait` is signal-interruptible
 apptainer exec --nv --writable \
     --bind "/net:/net" \
     --bind "$PROJECT_ROOT:/strategy-rl" \
@@ -48,7 +72,20 @@ apptainer exec --nv --writable \
     --env TRITON_CACHE_DIR=/strategy-rl/tmp/triton_cache \
     --env WANDB_API_KEY="$WANDB_API_KEY" \
     --env WANDB_DIR="/strategy-rl/MARSHAL/logs" \
+    --env RAY_TMPDIR="/strategy-rl/tmp/ray_${SLURM_JOB_ID}" \
+    --env SLURM_CPUS_PER_TASK="$SLURM_CPUS_PER_TASK" \
     "$CONTAINER_PATH" \
-    bash -c "cd /strategy-rl/MARSHAL && bash examples/hanabi/run_agentic_pipeline_hanabi_selfplay.sh"
+    bash -c "cd /strategy-rl/MARSHAL && bash examples/hanabi/run_agentic_pipeline_hanabi_selfplay.sh" &
+TRAIN_PID=$!
 
-echo "Training finished"
+# wait is interruptible by signals (unlike a foreground command)
+wait $TRAIN_PID
+TRAIN_EXIT=$?
+echo "Training exited with code: $TRAIN_EXIT"
+
+if $TIMED_OUT; then
+    echo "$(date): Job timed out. Auto-resuming from latest checkpoint..."
+    bash "$SCRIPT_DIR/train_autoresume.sh"
+else
+    echo "$(date): Training completed without timeout. No resubmission."
+fi

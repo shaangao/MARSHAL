@@ -42,12 +42,15 @@ def start_ray_cluster():
         logger.info("Ray cluster already initialized")
         return False
 
+    num_cpus = os.environ.get("SLURM_CPUS_PER_TASK") or os.environ.get("RAY_NUM_CPUS")
+    cpu_flag = f" --num-cpus={num_cpus}" if num_cpus else ""
+
     if rank == 0:
-        cmd = f"ray start --head --port={master_port} --node-name={node_name}"
+        cmd = f"ray start --head --port={master_port} --node-name={node_name}{cpu_flag}"
     else:
         # fix: 处理大规模下可能会出现的head/worker node创建顺序不一致问题
         time.sleep(5)
-        cmd = f"ray start --address={master_addr}:{master_port} --node-name={node_name}"
+        cmd = f"ray start --address={master_addr}:{master_port} --node-name={node_name}{cpu_flag}"
 
     logger.info(f"Starting ray cluster: {cmd}")
     ret = subprocess.run(cmd, shell=True, capture_output=True)
