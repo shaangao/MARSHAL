@@ -1,12 +1,18 @@
 #!/bin/bash
-# TODO: autoresume still not working 
 set -euo pipefail
+
+# --- !!! don't forget to update train.sbatch !!! ---
+# GAME="hanabi"
+# GAME="kuhn_poker"  # won't work with 4 gpus config due to thread exhaustion
+GAME="leduc_poker"
+# GAME="tictactoe"
+METHOD="selfplay"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="/net/projects2/ycleong/sg/strategy-rl"
-RESULTS_DIR="$PROJECT_ROOT/MARSHAL/results/hanabi_selfplay"
+RESULTS_DIR="$PROJECT_ROOT/MARSHAL/results/${GAME}_${METHOD}"
 SIMLINK_SCRIPT="$SCRIPT_DIR/simlink_resume_dir.sh"
-YAML_FILE="$PROJECT_ROOT/MARSHAL/examples/hanabi/agentic_val_hanabi_selfplay.yaml"
+YAML_FILE="$PROJECT_ROOT/MARSHAL/examples/${GAME}/agentic_val_${GAME}_${METHOD}.yaml"
 SBATCH_SCRIPT="$SCRIPT_DIR/train.sbatch"
 
 DRY_RUN=false
@@ -105,9 +111,9 @@ fi
 # --- Step 4: Update simlink_resume_dir.sh with the new PREV_RUN and STEP ---
 echo ""
 echo "Updating $SIMLINK_SCRIPT ..."
-# comments out the current active PREV_RUN= line in the simlink script, preserving previous values
+# comment out the current active PREV_RUN= line in the simlink script, preserving previous values
 sed -i -E 's/^PREV_RUN=/# PREV_RUN=/' "$SIMLINK_SCRIPT"
-# updates the STEP variable in the simlink script to the new best step
+# update the STEP variable in the simlink script to the new best step
 sed -i -E "s/^STEP=.*/STEP=$BEST_STEP/" "$SIMLINK_SCRIPT"
 
 # find the last commented # PREV_RUN= line and insert a new PREV_RUN="<best_run>" line after it
@@ -126,6 +132,8 @@ echo ""
 echo "Updating $YAML_FILE ..."
 # comments out the current (uncommented) resume_from_checkpoint: "<...>" line in the YAML file
 sed -i -E 's|^resume_from_checkpoint: ".+"|# &|' "$YAML_FILE"
+# also handle the case where it might be false
+sed -i -E 's|^resume_from_checkpoint: false|# &|' "$YAML_FILE"
 
 # finds the last commented-out # resume_from_checkpoint: line, gets its line number, and stores it in LAST_RESUME_LINE
 LAST_RESUME_LINE=$(grep -n '^# resume_from_checkpoint:' "$YAML_FILE" | tail -1 | cut -d: -f1)

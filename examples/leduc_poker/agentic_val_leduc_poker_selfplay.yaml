@@ -10,37 +10,50 @@ hydra:
     dir: .
   output_subdir: null
 
-exp_name: "agentic_pipeline"
+exp_name: "agentic_leduc_poker_selfplay"
 seed: 42
-logging_dir: /mnt/public/algm/tanzheyue/rl/rl_examples/exps/${exp_name}/output/logs
-output_dir: /mnt/public/algm/tanzheyue/rl/rl_examples/exps/${exp_name}/output
+# logging_dir: /net/projects2/ycleong/sg/strategy-rl/MARSHAL/logs/${exp_name}
+# output_dir: /net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/${exp_name}
 
 # render_save_dir: ./runs/render
 system_envs:
   USE_MODELSCOPE: "1"
 
-#track_with: wandb
-#tracker_kwargs:
-#  api_key:
-#  project: roll-agentic
-#  name: ${exp_name}_sokoban
-#  notes: "agentic_pipeline"
-#  tags:
-#    - agentic
-#    - roll
-#    - baseline
-
-track_with: tensorboard
+track_with: wandb
 tracker_kwargs:
-  log_dir: /mnt/public/algm/tanzheyue/rl/rl_examples/exps/${exp_name}/tensorboard_logs
+ api_key: ${oc.env:WANDB_API_KEY}
+ project: MARSHAL
+ name: ${exp_name}_${pretrain}_${now:%Y%m%d-%H%M%S}
+ notes: "agentic_pipeline"
+ tags:
+   - agentic
+   - roll
+   - baseline
 
-num_gpus_per_node: 8
+# track_with: tensorboard
+# tracker_kwargs:
+#   log_dir: /net/projects2/ycleong/sg/strategy-rl/MARSHAL/logs/tensorboard/${exp_name}
+
+num_gpus_per_node: 4
 
 max_steps: 200
-save_steps: 20
+save_steps: 10
+# save_steps: 10
 logging_steps: 1
 eval_steps: 5
-resume_from_checkpoint: false
+# resume_from_checkpoint: false
+# resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/leduc_poker_selfplay/20260503-073440/resume-checkpoint-34"
+# resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/leduc_poker_selfplay/20260506-230646/resume-checkpoint-39"
+# resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/leduc_poker_selfplay/20260506-230646/resume-checkpoint-39"
+# resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/leduc_poker_selfplay/20260506-230646/resume-checkpoint-39"
+# resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/leduc_poker_selfplay/20260508-141618/resume-checkpoint-59"
+# resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/leduc_poker_selfplay/20260508-141618/resume-checkpoint-59"
+# resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/leduc_poker_selfplay/20260509-141301/resume-checkpoint-79"
+# resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/leduc_poker_selfplay/20260510-021140/resume-checkpoint-89"
+# resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/leduc_poker_selfplay/20260510-140933/resume-checkpoint-99"
+# resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/leduc_poker_selfplay/20260510-140933/resume-checkpoint-99"
+# resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/leduc_poker_selfplay/20260510-140933/resume-checkpoint-99"
+resume_from_checkpoint: "/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/leduc_poker_selfplay/20260512-195326/resume-checkpoint-129"
 
 rollout_batch_size: 128
 val_batch_size: 1500
@@ -60,7 +73,10 @@ kl_loss_coef: 0.20
 whiten_advantages: true
 entropy_loss_coef: 0
 
-pretrain: /mnt/public/yuanhuining/models/Qwen3-4B/
+# pretrain: /mnt/public/yuanhuining/models/Qwen3-4B/
+pretrain: Qwen/Qwen3-4B
+# pretrain: Qwen/Qwen3-8B
+# pretrain: meta-llama/Llama-3.2-3B-Instruct
 
 actor_train:
   model_args:
@@ -90,7 +106,7 @@ actor_train:
       recompute_granularity: full
       accumulate_allreduce_grads_in_fp32: true
       check_for_nan_in_loss_and_grad: false
-  device_mapping: list(range(0,8))
+  device_mapping: list(range(0, ${num_gpus_per_node}))
   infer_batch_size: 2
 
 actor_infer:
@@ -113,7 +129,7 @@ actor_infer:
       gpu_memory_utilization: 0.8
       block_size: 16
       load_format: auto
-  device_mapping: list(range(0,8))
+  device_mapping: list(range(0, ${num_gpus_per_node}))
 
 reference:
   model_args:
@@ -126,7 +142,7 @@ reference:
   strategy_args:
     strategy_name: hf_infer
     strategy_config: ~
-  device_mapping: list(range(0,8))
+  device_mapping: list(range(0, ${num_gpus_per_node}))
   infer_batch_size: 2
 
 enable_response_mask: True
@@ -299,7 +315,7 @@ train_env_manager:
   n_groups: [64] # If not set, all env names divide nums equally. Under the same group, the env config and env seed (prompt) are equal in each generation
 
 val_env_manager:
-  max_env_num_per_worker: 32
+  max_env_num_per_worker: 96 # how many envs are packed into each Ray worker. Increasing it reduces the number of val env Ray actors
   env_groups: 480
   group_size: 1
   tags: [
@@ -319,4 +335,7 @@ val_env_manager:
     SimpleHanabi,
     FullHanabi
   ]
-  n_groups: [32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32] #
+
+  # how many trajectories per val_env?
+  n_groups: [32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32]
+  # n_groups: [16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16]

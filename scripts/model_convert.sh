@@ -1,9 +1,11 @@
 # run /MARSHAL/scripts/simlink_resume_dir.sh before running this script
 # needs to be run inside apptainer. call /MARSHAL/scripts/model_convert_apptainer.sh instead.
 
+# RUN_PATH="/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260415-190222"
 RUN_PATH=/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260417-055818
+# RUN_PATH=/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hanabi_selfplay/20260503-013900
 CKPT=checkpoint-59
-OUTPUT_PATH=/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hf_models/selfplay/hanabi_selfplay
+OUTPUT_PATH=/net/projects2/ycleong/sg/strategy-rl/MARSHAL/results/hf_models/selfplay/hanabi_selfplay/${CKPT}
 mkdir -p ${OUTPUT_PATH}
 
 # copy the original Qwen3-4B config.json

@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=marshal_hanabi_4b
+#SBATCH --job-name=marshal
 #SBATCH --output=/net/projects2/ycleong/sg/strategy-rl/MARSHAL/logs/train_%j.out
 #SBATCH --error=/net/projects2/ycleong/sg/strategy-rl/MARSHAL/logs/train_%j.err
 #SBATCH --time=12:00:00
@@ -7,11 +7,13 @@
 #SBATCH --nodes=1
 #SBATCH --constraint="a100|h100|h200"
 #SBATCH --gpus-per-node=4
+# SBATCH --gpus-per-node=8
 # SBATCH --gres=gpu:8
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=32
+# SBATCH --cpus-per-task=64
 #SBATCH --mem-per-cpu=16G
-# SBATCH --mem=128G
+# SBATCH --mem=512G
 
 # SBATCH --mail-type=ALL  # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=shangao@uchicago.edu  # mail notification for the job
@@ -35,8 +37,7 @@ echo "Job ID: $SLURM_JOB_ID"
 
 
 TIMED_OUT=false
-# finds the directory containing the currently running script 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$PROJECT_ROOT/MARSHAL/scripts"
 
 # Clean up ray session and related processes
 cleanup() {
@@ -75,7 +76,10 @@ apptainer exec --nv --writable \
     --env RAY_TMPDIR="/strategy-rl/tmp/ray_${SLURM_JOB_ID}" \
     --env SLURM_CPUS_PER_TASK="$SLURM_CPUS_PER_TASK" \
     "$CONTAINER_PATH" \
-    bash -c "cd /strategy-rl/MARSHAL && bash examples/hanabi/run_agentic_pipeline_hanabi_selfplay.sh" &
+    # bash -c "cd /strategy-rl/MARSHAL && bash examples/leduc_poker/run_agentic_pipeline_leduc_poker_selfplay.sh" &
+    bash -c "cd /strategy-rl/MARSHAL && bash examples/tictactoe/run_agentic_pipeline_tictactoe_selfplay.sh" &
+    # bash -c "cd /strategy-rl/MARSHAL && bash examples/kuhn_poker/run_agentic_pipeline_kuhn_poker_selfplay.sh" &
+    # bash -c "cd /strategy-rl/MARSHAL && bash examples/hanabi/run_agentic_pipeline_hanabi_selfplay.sh" &
 TRAIN_PID=$!
 
 # wait is interruptible by signals (unlike a foreground command)
